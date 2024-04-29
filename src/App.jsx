@@ -1,35 +1,51 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom'
+import { base32 } from '@scure/base';
+import Alert from 'react-bootstrap/Alert';
+import Form from 'react-bootstrap/Form';
 import './App.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { encryptedSolution } = useParams()
+  const [invalid, setInvalid] = useState(false)
+  const solution = useRef()
+  const [success, setSuccess] = useState(null)
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    let { answer } = Object.fromEntries(new FormData(e.target).entries())
+    setSuccess(answer === solution.current)
+  }
+
+  useEffect(() => {
+    try {
+      solution.current = new TextDecoder().decode(base32.decode(encryptedSolution))
+    } catch(e) {
+      setInvalid(true);
+    }
+  }, [encryptedSolution])
+
+  if (invalid) return (
+    <Alert variant="warning"> QR code invalide ! </Alert>
   )
+  return (
+    <Form onSubmit={handleSubmit}>
+      <Form.Control placeholder="Votre réponse..." name="answer" className="mb-3" />
+      <Result {...{success, solution}} className="mb-3" />
+    </Form>
+  )
+}
+
+function Result({success, solution}) {
+  switch (success) {
+    case true: return (
+      <Alert variant="success"> Bravo, oui, la réponse est "{solution.current}" ! </Alert>
+    )
+    case false: return (
+      <Alert variant="danger"> Non, ce n'est pas la réponse. Essaie encore... </Alert>
+    )
+  }
 }
 
 export default App
