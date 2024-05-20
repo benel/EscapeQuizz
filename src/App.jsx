@@ -9,20 +9,22 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 function App() {
   const { encryptedSolution } = useParams()
   const [invalid, setInvalid] = useState(false)
-  const solution = useRef()
-  const [success, setSuccess] = useState(null)
+  const isCorrect = useRef(() => false)
+  const [answer, setAnswer] = useState(null)
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    let { answer } = Object.fromEntries(new FormData(e.target).entries())
-    setSuccess(answer === solution.current)
+    setAnswer(e.target[0].value)
   }
 
   useEffect(() => {
+    const decode = (x) => new TextDecoder().decode(base32.decode(x))
+    const equalsToOne = (x, l) => l.split('|').some(y => y === x)
     try {
-      solution.current = new TextDecoder().decode(base32.decode(encryptedSolution))
+      let clause = decode(encryptedSolution)
+      isCorrect.current = (x) => equalsToOne(x, clause)
     } catch(e) {
-      setInvalid(true);
+      setInvalid(true)
     }
   }, [encryptedSolution])
 
@@ -32,17 +34,17 @@ function App() {
   return (
     <Form onSubmit={handleSubmit}>
       <Form.Control placeholder="Votre réponse..." name="answer" className="mb-3" />
-      <Result {...{success, solution}} className="mb-3" />
+      <Result {...{answer, isCorrect}} className="mb-3" />
     </Form>
   )
 }
 
-function Result({success, solution}) {
-  switch (success) {
-    case true: return (
-      <Alert variant="success"> Bravo, oui, la réponse est "{solution.current}" ! </Alert>
+function Result({answer, isCorrect}) {
+  if (answer) {
+    if (isCorrect.current(answer)) return (
+      <Alert variant="success"> Bravo, oui, la réponse est "{answer}" ! </Alert>
     )
-    case false: return (
+    return (
       <Alert variant="danger"> Non, ce n'est pas la réponse. Essaie encore... </Alert>
     )
   }
