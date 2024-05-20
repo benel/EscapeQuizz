@@ -48,7 +48,7 @@ function Result({answer, isCorrect}) {
       <Alert variant="success"> Bravo, oui, la réponse est "{normalize(answer)}" ! </Alert>
     )
     return (
-      <Alert variant="danger"> Non, ce n'est pas la réponse. Essaie encore... </Alert>
+      <Alert variant="danger"> Non, ce n'est pas la réponse. Essayez encore... </Alert>
     )
   }
 }
