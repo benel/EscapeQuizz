@@ -6,6 +6,8 @@ import Form from 'react-bootstrap/Form';
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+const normalize = (x) => x.trim().toLowerCase()
+
 function App() {
   const { encryptedSolution } = useParams()
   const [invalid, setInvalid] = useState(false)
@@ -19,7 +21,8 @@ function App() {
 
   useEffect(() => {
     const decode = (x) => new TextDecoder().decode(base32.decode(x))
-    const equalsToOne = (x, l) => l.split('|').some(y => y === x)
+    const equals = (x, y) => normalize(x) === normalize(y)
+    const equalsToOne = (x, l) => l.split('|').some(y => equals(y, x))
     try {
       let clause = decode(encryptedSolution)
       isCorrect.current = (x) => equalsToOne(x, clause)
@@ -42,7 +45,7 @@ function App() {
 function Result({answer, isCorrect}) {
   if (answer) {
     if (isCorrect.current(answer)) return (
-      <Alert variant="success"> Bravo, oui, la réponse est "{answer}" ! </Alert>
+      <Alert variant="success"> Bravo, oui, la réponse est "{normalize(answer)}" ! </Alert>
     )
     return (
       <Alert variant="danger"> Non, ce n'est pas la réponse. Essaie encore... </Alert>
